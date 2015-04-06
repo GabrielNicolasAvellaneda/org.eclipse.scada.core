@@ -21,6 +21,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
 import org.eclipse.scada.hd.server.storage.hds.AbstractStorageManager;
@@ -64,9 +65,17 @@ public class StorageManager extends AbstractStorageManager
         initialize ();
     }
 
+    private static String unEscapeArgValue ( final String string )
+    {
+        final String s1 = Pattern.quote ( "\\$\\{" );
+        final String s2 = Pattern.quote ( "\\}" );
+
+        return string.replaceAll ( s1 + "(.*?)" + s2, "\\$\\{$1\\}" ); //$NON-NLS-1$ //$NON-NLS-2$
+    }
+
     private static File makeBase ( final BundleContext context )
     {
-        String basePath = System.getProperty ( "org.eclipse.scada.hd.server.storage.master.hds.basePath", System.getProperty ( "org.eclipse.scada.hd.server.storage.hds.basePath" ) );
+        String basePath = unEscapeArgValue ( System.getProperty ( "org.eclipse.scada.hd.server.storage.master.hds.basePath", System.getProperty ( "org.eclipse.scada.hd.server.storage.hds.basePath" ) ) );
 
         // replace variables in path, like "user.home"
         basePath = StringReplacer.replace ( basePath, System.getProperties () );
